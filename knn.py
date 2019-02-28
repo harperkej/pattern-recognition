@@ -4,8 +4,9 @@ import time
 
 class KNearestNeighbor:
 
-    def __init__(self, data_set_name):
-        self.data_set_name = data_set_name
+    def __init__(self, test_dataset, train_dataset):
+        self.test_dataset = test_dataset
+        self.train_dataset = train_dataset
     
     def manhattan_distance(self, image1, image2):
         """Calculate the manhattan distance of two vectors."""
@@ -54,37 +55,33 @@ class KNearestNeighbor:
 
     def knn(self, distance_metric, k_parameter = 1):
         total_images = 0
-        with open(self.data_set_name) as data_set:
-            reader = csv.reader(data_set, delimiter='\t')
-            outer_id = 1
+        with open(self.test_dataset) as test_dataset:
+            reader = csv.reader(test_dataset, delimiter='\t')
             misclassified_images = 0
             k_nearest_labels_of_current_img = []
             for current_image in reader:
                 total_images += 1
-                inner_id = 1
                 labels, distances = [], []
-                with open(self.data_set_name) as inner_data_set:
-                    inner_reader = csv.reader(inner_data_set, delimiter = '\t')
+                with open(self.train_dataset) as train_dataset:
+                    inner_reader = csv.reader(train_dataset, delimiter = '\t')
                     for image in inner_reader:
-                        if inner_id != outer_id:
-                            euclidian_dist = distance_metric(current_image, image)
-                            labels.append(image[0])
-                            distances.append(euclidian_dist)
-                        inner_id =  inner_id + 1
+                        euclidian_dist = distance_metric(current_image, image)
+                        labels.append(image[0])
+                        distances.append(euclidian_dist)
                 k_nearest_labels_of_current_img = self.find_k_nearest_labels(labels, distances, k_parameter)
                 most_frequent_label = self.find_most_frequent_label(k_nearest_labels_of_current_img)
-                outer_id = outer_id + 1
                 if most_frequent_label != current_image[0]:
                     misclassified_images = misclassified_images + 1
             success_rate = 1 - misclassified_images / total_images
             print(success_rate)
             print(total_images)
+            print(misclassified_images)
 
-knn = KNearestNeighbor('train.csv')
-print('Starting .... ')
+knn = KNearestNeighbor('dev_test.csv','dev_train.csv')
+print('Starting .... (with big dataset)')
 start_time = time.time()
-knn.knn(knn.manhattan_distance, 1)
+knn.knn(knn.manhattan_distance, 1) 
 end_time = time.time()
 print('Finished')
 print('Took in total: ')
-print((end_time - start_time) + ' seconds')
+print(end_time - start_time)
